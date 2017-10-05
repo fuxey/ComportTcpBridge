@@ -49,7 +49,6 @@ int main(int argc, char *argv[])
 
     }
 
-
     if(Port->set){
         tcpPort = Port->Value;
     } else {
