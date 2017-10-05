@@ -31,3 +31,6 @@ HEADERS += \
     tcpcomportbridge.h
 
 include (qextserialport-master/src/qextserialport.pri)
+
+DISTFILES += \
+    Readme.md
