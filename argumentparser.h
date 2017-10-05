@@ -22,7 +22,6 @@ class ArgumentParser
 public:
     ArgumentParser();
     void setArgs(Argument *a);
-
     int ParseArguments(QStringList cmdlineArgs);
     void PrintArgumentDescription();
 private:

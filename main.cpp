@@ -17,6 +17,7 @@ int main(int argc, char *argv[])
     Argument *Baud = new Argument(QStringList() << "b", "Enter b < Baudrate> for the Baudrate of the Comport! Default is 115200");
     Argument *TcpClient = new Argument(QStringList() << "t", "Enter t <ipaddress> for the tcp server you want to connect with");
     ArgumentParser pars;
+
     pars.setArgs(ListComports);
     pars.setArgs(Comport);
     pars.setArgs(Port);
