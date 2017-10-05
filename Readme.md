@@ -11,7 +11,7 @@ Enter t <port> for where to connect via tcp to it! Default is 9800
 Enter b < Baudrate> for the Baudrate of the Comport! Default is 115200
 Enter t <ipaddress> for the tcp server you want to connect with
 
-######example:
+###### Example:
 comporttotcpbridge c p COM3 t 6000 b 9600
 
 
