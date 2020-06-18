@@ -19,12 +19,12 @@ bool TcpServer::StartServer()
 }
 
 
-void TcpServer::incomingConnection(int socketDescriptor)
+void TcpServer::incomingConnection(qintptr handle)
 {
-    qInfo() << socketDescriptor << " Connecting...";
+    qInfo() << handle << " Connecting...";
 
     QTcpSocket *socket = new QTcpSocket();
-    if(!socket->setSocketDescriptor(socketDescriptor)){
+    if(!socket->setSocketDescriptor(handle)){
        // emit socket->error();
     }
 

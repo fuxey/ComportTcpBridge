@@ -10,8 +10,6 @@ class TcpServer :public QTcpServer
 public:
     TcpServer(quint16 port);
     bool StartServer();
-protected:
-    void incomingConnection(int socketDescriptor);
 private:
     quint16 m_port;
 
@@ -19,6 +17,10 @@ private:
 signals:
     void NewSocketConnection_s(QTcpSocket *);
 
+
+    // QTcpServer interface
+protected:
+    void incomingConnection(qintptr handle);
 };
 
 #endif // TCPSERVER_H
