@@ -17,6 +17,7 @@ static void signalHandler(int signum) {
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
+    bool verbose = false;
 
 
     cxxopts::Options options("XDock test serial echo");
@@ -26,9 +27,16 @@ int main(int argc, char *argv[])
         "b,baudrate", "baudrate for serial",cxxopts::value<int>()->default_value("115200"))(
         "p,port", "tcp port where telnet can connect to", cxxopts::value<int>()->default_value("8080"))(
         "l,listports", "list all available comports")(
+        "v,verbosity", "print all received messages")(
         "h,help", "Print helptext");
 
     auto result = options.parse(argc, argv);
+
+    if(result.count("verbosity")) {
+        verbose = true;
+    }
+
+
     if (result.count("help")) {
       std::cout << options.help() << std::endl;
       return 0;
@@ -54,7 +62,8 @@ int main(int argc, char *argv[])
     if(result.count("serport") && result.count("baudrate") && result.count("port")) {
 
         TcpComportBridge *bridge;
-        bridge = new TcpComportBridge(QString::fromStdString(result["serport"].as<std::string>()),result["port"].as<int>(),result["baudrate"].as<int>());
+        bridge = new TcpComportBridge(QString::fromStdString(result["serport"].as<std::string>()),
+                result["port"].as<int>(),result["baudrate"].as<int>(),verbose);
 
 
         if(!bridge->startTcpServer()) {

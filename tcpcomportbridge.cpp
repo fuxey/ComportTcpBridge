@@ -1,7 +1,7 @@
 #include "tcpcomportbridge.h"
 
 
-TcpComportBridge::TcpComportBridge(QString Comport, quint16 tcpPort,quint32 Baudrate)
+TcpComportBridge::TcpComportBridge(QString Comport, quint16 tcpPort, quint32 Baudrate, bool verbose)
 {
     this->Server = new TcpServer(tcpPort);
     this->comport = new QSerialPort(Comport);
@@ -15,6 +15,7 @@ TcpComportBridge::TcpComportBridge(QString Comport, quint16 tcpPort,quint32 Baud
         this->comport->setBaudRate(115200);
     }
     connect(this->Server,SIGNAL(NewSocketConnection_s(QTcpSocket*)),this,SLOT(onNewSocket(QTcpSocket*)));
+    m_verbose = verbose;
 }
 
 bool TcpComportBridge::connectToComport()
@@ -54,10 +55,11 @@ void TcpComportBridge::onTcpReadyRead(){
         if(tempSock->bytesAvailable()> 0){
             QByteArray data = tempSock->readAll();
             comport->write(data);
-            qDebug() << "----------------------------------------------------------------------------------------";
-            qDebug() << "Write data from socket to Comport" << tempSock->localAddress() << "data" << data.toHex();
-            qDebug() << "----------------------------------------------------------------------------------------";
-
+            if(m_verbose) {
+                qDebug() << "----------------------------------------------------------------------------------------";
+                qDebug() << "Write data from socket to Comport" << tempSock->localAddress() << "data" << data.toHex();
+                qDebug() << "----------------------------------------------------------------------------------------";
+            }
         }
     }
 }
@@ -65,18 +67,25 @@ void TcpComportBridge::onTcpReadyRead(){
 void TcpComportBridge::onComportReadRead(){
 
     if(comport->bytesAvailable()>0){
-        qDebug() << "----------------------------------------------------------------------------------------";
-        qDebug() << "Write Data from Comport to:";
-        qDebug() << "----------------------------------------------------------------------------------------";
+        if(m_verbose) {
+            qDebug() << "----------------------------------------------------------------------------------------";
+            qDebug() << "Write Data from Comport to:";
+            qDebug() << "----------------------------------------------------------------------------------------";
+        }
         QByteArray data = comport->readAll();
         for(int i = 0; i < socketList.size(); i++){
             QTcpSocket *tempsock = socketList.at(i);
             tempsock->write(data);
-            qDebug() << tempsock->peerAddress();
+            if(m_verbose) {
+                qDebug() << tempsock->peerAddress();
+            }
         }
-        qDebug() << data.toHex();
+        if(m_verbose) {
+            qDebug() << data.toHex();
+        }
     }
 }
+
 
 void TcpComportBridge::onSocketDisconnect(){
     QTcpSocket* socket = qobject_cast<QTcpSocket*>(sender());
