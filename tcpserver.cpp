@@ -10,10 +10,10 @@ TcpServer::TcpServer(quint16 port)
 bool TcpServer::StartServer()
 {
     if(!this->listen(QHostAddress::Any,this->m_port)){
-        qDebug() << "Could not start server";
+        qWarning() << "Could not start server";
         return false;
     }else {
-        qDebug() << "Listening... to port " << this->m_port;
+        qInfo() << "Listening... to port " << this->m_port;
         return true;
     }
 }
@@ -21,7 +21,7 @@ bool TcpServer::StartServer()
 
 void TcpServer::incomingConnection(int socketDescriptor)
 {
-    qDebug() << socketDescriptor << " Connecting...";
+    qInfo() << socketDescriptor << " Connecting...";
 
     QTcpSocket *socket = new QTcpSocket();
     if(!socket->setSocketDescriptor(socketDescriptor)){

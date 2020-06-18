@@ -1,4 +1,4 @@
-QT += core network
+QT += core network serialport
 QT -= gui
 
 CONFIG += c++11
@@ -10,7 +10,6 @@ CONFIG -= app_bundle
 TEMPLATE = app
 
 SOURCES += main.cpp \
-    argumentparser.cpp \
     tcpserver.cpp \
     tcpcomportbridge.cpp
 
@@ -26,11 +25,8 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 HEADERS += \
-    argumentparser.h \
     tcpserver.h \
     tcpcomportbridge.h
-
-include (qextserialport-master/src/qextserialport.pri)
 
 DISTFILES += \
     Readme.md

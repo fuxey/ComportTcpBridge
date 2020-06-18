@@ -5,7 +5,7 @@
 #include <tcpserver.h>
 #include <QTcpSocket>
 #include <QDebug>
-#include <qextserialport.h>
+#include <QSerialPort>
 
 
 class TcpComportBridge : public QObject
@@ -25,7 +25,7 @@ private slots:
 private:
     QList<QTcpSocket *> socketList;
     TcpServer *Server;
-    QextSerialPort *comport;
+    QSerialPort *comport;
 };
 
 #endif // TCPCOMPORTBRIDGE_H

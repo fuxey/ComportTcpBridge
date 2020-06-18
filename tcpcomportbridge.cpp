@@ -4,15 +4,15 @@
 TcpComportBridge::TcpComportBridge(QString Comport, quint16 tcpPort,quint32 Baudrate)
 {
     this->Server = new TcpServer(tcpPort);
-    this->comport = new QextSerialPort(Comport);
+    this->comport = new QSerialPort(Comport);
 
     //TODO: add more baudrates!
     switch(Baudrate){
-        case 9600: this->comport->setBaudRate(BAUD9600); break;
-        case 38400: this->comport->setBaudRate(BAUD38400); break;
-        case 115200: this->comport->setBaudRate(BAUD115200); break;
+        case 9600: this->comport->setBaudRate(9600); break;
+        case 38400: this->comport->setBaudRate(38400); break;
+        case 115200: this->comport->setBaudRate(115200); break;
         default: qDebug() << "Baudrate is undefined set to 115200";
-        this->comport->setBaudRate(BAUD115200);
+        this->comport->setBaudRate(115200);
     }
     connect(this->Server,SIGNAL(NewSocketConnection_s(QTcpSocket*)),this,SLOT(onNewSocket(QTcpSocket*)));
 }
@@ -85,9 +85,9 @@ void TcpComportBridge::onSocketDisconnect(){
     socketList.removeOne(socket);
     socket->deleteLater();
 
-    qDebug() << "Socket Disconnected!";
+    qInfo() << "Socket Disconnected!";
     for(int i = 0; i < socketList.size(); i++){
-        qDebug() << socketList.at(i)->peerAddress();
+        qInfo() << socketList.at(i)->peerAddress();
     }
 
 }

@@ -1,8 +1,17 @@
 #include <QCoreApplication>
-#include "argumentparser.h"
-#include "qextserialenumerator.h"
+#include <QSerialPortInfo>
 #include <QDebug>
 #include "tcpcomportbridge.h"
+#include "cxxopts.hpp"
+#include <csignal>
+
+
+
+static void signalHandler(int signum) {
+  qInfo() << "Signal caught, shutdown program: " << signum;
+  qApp->exit(1);
+
+}
 
 
 int main(int argc, char *argv[])
@@ -10,90 +19,62 @@ int main(int argc, char *argv[])
     QCoreApplication a(argc, argv);
 
 
+    cxxopts::Options options("XDock test serial echo");
+    options.add_options()(
+        "c,serport", "Serialport used, full path e.g.: '/dev/ttyUSB0', or 'COM3' ",
+        cxxopts::value<std::string>()->default_value("/dev/ttyUSB0"))(
+        "b,baudrate", "baudrate for serial",cxxopts::value<int>()->default_value("115200"))(
+        "p,port", "tcp port where telnet can connect to", cxxopts::value<int>()->default_value("8080"))(
+        "l,listports", "list all available comports")(
+        "h,help", "Print helptext");
 
-    Argument *ListComports = new Argument(QStringList() << "c","Enter c to see all available Comports");
-    Argument *Comport = new Argument(QStringList() << "p", "Enter p <comport> to connect to it!");
-    Argument *Port = new Argument(QStringList() << "t", "Enter t <port> for where to connect via tcp to it! Default is 9800");
-    Argument *Baud = new Argument(QStringList() << "b", "Enter b < Baudrate> for the Baudrate of the Comport! Default is 115200");
-    Argument *TcpClient = new Argument(QStringList() << "t", "Enter t <ipaddress> for the tcp server you want to connect with");
-    ArgumentParser pars;
-
-    pars.setArgs(ListComports);
-    pars.setArgs(Comport);
-    pars.setArgs(Port);
-    pars.setArgs(Baud);
-    pars.setArgs(TcpClient);
-
-    pars.ParseArguments(a.arguments());
-    pars.PrintArgumentDescription();
+    auto result = options.parse(argc, argv);
+    if (result.count("help")) {
+      std::cout << options.help() << std::endl;
+      return 0;
+    }
+#ifndef Q_OS_WINDOWS
+    std::signal(SIGKILL, signalHandler);
+#endif
+    std::signal(SIGTERM, signalHandler);
+    std::signal(SIGINT, signalHandler);
 
 
-    quint16 tcpPort = 0;
-    QString comportString;
-    quint32 baudrate;
-    QString clientAddr;
-
-    if(ListComports->set){
-        QList<QextPortInfo> ports = QextSerialEnumerator::getPorts();
+    if(result.count("listports")){
+        QList<QSerialPortInfo> ports = QSerialPortInfo::availablePorts();
         for(int i = 0; i < ports.size();i++){
-            qDebug() << "available port:" << i << ports.at(i).portName << ports.at(i).enumName << ports.at(i).vendorID;
+            qInfo() << "available port:" << i << ports.at(i).portName() << ports.at(i).vendorIdentifier();
         }
         if(ports.size() == 0){
-            qDebug() << "No Comports Available";
+            qInfo() << "No Comports Available";
         }
     }
 
-    if(TcpClient->set){
 
-    } else{
+    if(result.count("serport") && result.count("baudrate") && result.count("port")) {
 
-    }
-
-    if(Port->set){
-        tcpPort = Port->Value;
-    } else {
-        qDebug() << "No correct TcpPort is entered use DefaultPort 9800";
-        tcpPort = 9800;
-    }
-
-    if(Comport->set){
-        comportString = Comport->payload;
-        qDebug()<< "Use Comport "<<comportString;
-    } else {
-        qDebug() << "No correct Comport is set!";
-        return 3;
-    }
+        TcpComportBridge *bridge;
+        bridge = new TcpComportBridge(QString::fromStdString(result["serport"].as<std::string>()),result["port"].as<int>(),result["baudrate"].as<int>());
 
 
-    if(Baud->set){
-        baudrate = Baud->Value;
-        qDebug() << "Set Baudrate to" << baudrate;
-    } else {
-        baudrate =115200;
-        qDebug() << "No Baudrate was entered start with default Value 115200";
-    }
-
-    TcpComportBridge *bridge;
-    bridge = new TcpComportBridge(comportString,tcpPort,baudrate);
-
-    if(TcpClient->set){
-        clientAddr = TcpClient->payload;
-        bridge->ConnectToServer(clientAddr,tcpPort);
-    } else {
-        qDebug() << "No TcpHost was selected, try to start tcp Server!";
-            if(!bridge->startTcpServer()){
-            qDebug() << "Cannot Start TcpServer";
+        if(!bridge->startTcpServer()) {
+            qWarning() << "Cannot Start TcpServer!";
             return 1;
         }
+
+        if(!bridge->connectToComport()) {
+            qWarning() << "Cannot Open Comport!";
+            return 2;
+        }
+
+
+        qInfo() << "Start Bridge on Comport"<< QString::fromStdString(result["serport"].as<std::string>())
+                << "Baudrate" << result["baudrate"].as<int>()
+                << "port" << result["port"].as<int>();
+
+    } else {
+       std::cout << options.help() << std::endl;
+       return 0;
     }
-
-    if(!bridge->connectToComport()){
-        qDebug() << "Cannot Open Comport!";
-        return 2;
-    }
-
-
-    qDebug() << "Start Bridge on Comport"<< comportString <<"Baudrate" << baudrate << "port" << tcpPort;
-
     return a.exec();
 }
